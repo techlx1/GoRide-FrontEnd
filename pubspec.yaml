@@ -1,0 +1,67 @@
+name: rideguyana
+description: A new Flutter project.
+publish_to: none
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.6.0
+
+dependencies:
+  # --- Core Flutter SDK ---
+  flutter:
+    sdk: flutter
+
+  # --- Core Services ---
+  http: ^1.2.0
+  provider: ^6.1.2
+  shared_preferences: ^2.3.2
+  intl: ^0.19.0
+
+  # --- Location & Background ---
+  geolocator: ^14.0.2
+  permission_handler: ^12.0.1
+
+  flutter_background_service: ^5.1.0
+  flutter_background_service_android: ^6.3.1
+
+  # --- Maps & Routing ---
+  google_maps_flutter: ^2.12.3
+  flutter_polyline_points: ^2.1.0
+
+  # --- Firebase ---
+  firebase_core: ^3.3.0
+  firebase_auth: ^5.3.2
+  cloud_firestore: ^5.4.1
+  firebase_messaging: ^15.1.1
+
+  # --- Networking ---
+  dio: ^5.5.0
+  socket_io_client: ^2.0.3+1
+  connectivity_plus: ^6.1.4
+  url_launcher: ^6.1.12
+  supabase_flutter: ^2.9.0
+  universal_html: ^2.2.4
+  web: ^1.1.1
+
+  # --- UI & Design ---
+  sizer: ^2.0.15
+  flutter_svg: ^2.0.9
+  google_fonts: ^6.1.0
+  cached_network_image: ^3.3.1
+  fl_chart: ^0.68.0
+  fluttertoast: ^8.2.4
+  pinput: ^5.0.2
+  sms_autofill: ^2.4.1
+  image_picker: ^1.0.7
+  flutter_local_notifications: ^17.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/
+    - assets/images/

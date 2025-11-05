@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "577627650967",
+    "project_id": "goride-9827a",
+    "storage_bucket": "goride-9827a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:577627650967:android:2bbb12ea84f2765661e2d2",
+        "android_client_info": {
+          "package_name": "com.rideguyana"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA4k_fOuFpkz6Yw6Z8CuYbdBnaPqC5-CWw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:577627650967:android:5374e6e196bf186361e2d2",
+        "android_client_info": {
+          "package_name": "com.rideguyana.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA4k_fOuFpkz6Yw6Z8CuYbdBnaPqC5-CWw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
