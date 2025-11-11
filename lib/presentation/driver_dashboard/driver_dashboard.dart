@@ -4,9 +4,10 @@ import 'package:sizer/sizer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../services/driver/driver_service.dart';
+import '../../services/driver/driver_earnings_service.dart';
+import '../../theme/app_theme.dart';
 import '../../utils/toast_helper.dart';
 import './widgets/earnings_summary_card.dart';
-import '../../theme/app_theme.dart';
 
 class DriverDashboard extends StatefulWidget {
   const DriverDashboard({Key? key}) : super(key: key);
@@ -39,11 +40,13 @@ class _DriverDashboardState extends State<DriverDashboard> {
 
       if (userId == null) {
         ToastHelper.showError('Missing user session. Please log in again.');
+        if (mounted) Navigator.pushReplacementNamed(context, '/login');
         return;
       }
 
       final profileFuture = DriverService.instance.getDriverProfile(userId);
-      final earningsFuture = DriverService.instance.getDriverEarnings(userId);
+      final earningsFuture =
+      DriverEarningsService.instance.getDriverEarnings(userId);
 
       final results = await Future.wait([profileFuture, earningsFuture]);
 
@@ -60,9 +63,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
   }
 
   void _onPageChanged(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+    setState(() => _selectedIndex = index);
   }
 
   void _onBottomNavTap(int index) {
@@ -87,12 +88,11 @@ class _DriverDashboardState extends State<DriverDashboard> {
     }
   }
 
-  // --- Pages ---
-
+  // ---------------------------------------------------------------------------
+  // DASHBOARD PAGE
+  // ---------------------------------------------------------------------------
   Widget _dashboardPage() {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
+    if (_isLoading) return const Center(child: CircularProgressIndicator());
 
     return RefreshIndicator(
       onRefresh: _loadDriverData,
@@ -102,59 +102,89 @@ class _DriverDashboardState extends State<DriverDashboard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 🔘 Online / Offline Toggle
-            Container(
-              width: double.infinity,
-              padding: EdgeInsets.all(4.w),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.2),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
+        // 🔘 Online / Offline Status Card (Modern UI)
+        Container(
+        padding: EdgeInsets.all(4.w),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.15),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // ✅ Status Icon
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: _isOnline
+                        ? Colors.green.withOpacity(0.15)
+                        : Colors.grey.withOpacity(0.15),
+                    shape: BoxShape.circle,
                   ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        backgroundColor: _isOnline ? Colors.green : Colors.grey,
-                        radius: 4.w,
+                  child: Icon(
+                    _isOnline ? Icons.check_circle : Icons.remove_circle_outline,
+                    color: _isOnline ? Colors.green : Colors.grey,
+                    size: 26,
+                  ),
+                ),
+                SizedBox(width: 3.w),
+                // Text section
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _isOnline ? "You're Online" : "You're Offline",
+                      style: TextStyle(
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.w600,
+                        color: _isOnline ? Colors.black87 : Colors.black54,
                       ),
-                      SizedBox(width: 3.w),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _isOnline ? "You're Online" : "You're Offline",
-                            style: AppTheme.lightTheme.textTheme.titleMedium!
-                                .copyWith(fontWeight: FontWeight.bold),
-                          ),
-                          Text(
-                            _isOnline
-                                ? "Tap to go offline"
-                                : "Tap to go online and start earning",
-                            style: AppTheme.lightTheme.textTheme.bodySmall,
-                          ),
-                        ],
+                    ),
+                    Text(
+                      _isOnline
+                          ? "Working for 2h 15m today"
+                          : "Tap to go online and start earning",
+                      style: TextStyle(
+                        fontSize: 11.sp,
+                        color: Colors.grey[600],
                       ),
-                    ],
-                  ),
-                  Switch(
-                    value: _isOnline,
-                    onChanged: _toggleOnlineStatus,
-                    activeColor: Colors.green,
-                  ),
-                ],
-              ),
+                    ),
+                  ],
+                ),
+              ],
             ),
 
-            SizedBox(height: 3.h),
+            // 🟦 iOS-style Toggle
+            Transform.scale(
+              scale: 1.1,
+              child: Switch.adaptive(
+                value: _isOnline,
+                onChanged: (value) async {
+                  await _toggleOnlineStatus(value);
+                },
+                activeColor: Colors.white,
+                activeTrackColor: Colors.green,
+                inactiveThumbColor: Colors.white,
+                inactiveTrackColor: Colors.grey[400],
+              ),
+            ),
+          ],
+        ),
+      ),
+
+        SizedBox(height: 3.h),
 
             // 💰 Earnings Summary
             if (_driverEarnings != null)
@@ -199,39 +229,105 @@ class _DriverDashboardState extends State<DriverDashboard> {
     };
   }
 
+  // ---------------------------------------------------------------------------
+  // EARNINGS PAGE (merged from previous design)
+  // ---------------------------------------------------------------------------
   Widget _earningsPage() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final data = _driverEarnings ?? {};
+
     return RefreshIndicator(
       onRefresh: _loadDriverData,
       child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: EdgeInsets.all(4.w),
-        child: _driverEarnings != null
-            ? Column(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            EarningsSummaryCard(earnings: _driverEarnings!),
+            EarningsSummaryCard(earnings: data),
+            SizedBox(height: 2.h),
+            _buildStatsRow(data),
             SizedBox(height: 3.h),
             Text(
-              "Recent Trips",
-              style: AppTheme.lightTheme.textTheme.titleMedium!.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              "Performance Summary",
+              style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
             ),
             SizedBox(height: 1.h),
-            Text(
-              "Detailed trip earnings history coming soon...",
-              style: AppTheme.lightTheme.textTheme.bodySmall,
-            ),
+            _buildTripSummary(data),
           ],
-        )
-            : const Center(
-          child: Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Text("No earnings data available."),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatsRow(Map<String, dynamic> data) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        _buildStatItem("Trips", data['trips'] ?? 0, Icons.local_taxi),
+        _buildStatItem("Rating", data['averageRating'] ?? 0.0, Icons.star),
+        _buildStatItem("Hours", data['hoursWorked'] ?? 0, Icons.timer),
+      ],
+    );
+  }
+
+  Widget _buildStatItem(String title, dynamic value, IconData icon) {
+    return Expanded(
+      child: Card(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        elevation: 2,
+        margin: EdgeInsets.symmetric(horizontal: 1.w),
+        child: Padding(
+          padding: EdgeInsets.all(2.w),
+          child: Column(
+            children: [
+              Icon(icon, color: Colors.blueAccent),
+              SizedBox(height: 1.h),
+              Text(
+                "$value",
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14.sp,
+                    color: Colors.black),
+              ),
+              Text(title,
+                  style: TextStyle(fontSize: 12.sp, color: Colors.grey[600])),
+            ],
           ),
         ),
       ),
     );
   }
 
+  Widget _buildTripSummary(Map<String, dynamic> data) {
+    return Column(
+      children: [
+        ListTile(
+          leading: const Icon(Icons.calendar_today, color: Colors.blue),
+          title: const Text("Weekly Trips"),
+          trailing: Text(
+            "${data['weeklyTrips'] ?? 0}",
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ),
+        ListTile(
+          leading: const Icon(Icons.attach_money, color: Colors.green),
+          title: const Text("Weekly Earnings"),
+          trailing: Text(
+            "G\$${(data['weeklyEarnings'] ?? 0).toStringAsFixed(0)}",
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // PROFILE PAGE
+  // ---------------------------------------------------------------------------
   Widget _profilePage() {
     if (_driverProfile == null) {
       return const Center(child: CircularProgressIndicator());
@@ -263,7 +359,6 @@ class _DriverDashboardState extends State<DriverDashboard> {
           ),
           SizedBox(height: 3.h),
 
-          // Vehicle Info
           Container(
             padding: EdgeInsets.all(4.w),
             width: double.infinity,
@@ -297,7 +392,6 @@ class _DriverDashboardState extends State<DriverDashboard> {
 
           SizedBox(height: 4.h),
 
-          // Logout
           ElevatedButton.icon(
             onPressed: () async {
               final prefs = await SharedPreferences.getInstance();
@@ -336,14 +430,16 @@ class _DriverDashboardState extends State<DriverDashboard> {
           Text(label,
               style: TextStyle(color: Colors.grey[700], fontSize: 12.sp)),
           Text(value,
-              style: TextStyle(
-                  fontWeight: FontWeight.w600, fontSize: 13.sp)),
+              style:
+              TextStyle(fontWeight: FontWeight.w600, fontSize: 13.sp)),
         ],
       ),
     );
   }
 
-  // --- Main Scaffold ---
+  // ---------------------------------------------------------------------------
+  // MAIN SCAFFOLD
+  // ---------------------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
     return Scaffold(

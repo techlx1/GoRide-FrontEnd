@@ -1,48 +1,47 @@
+import 'dart:developer';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class DriverService {
   DriverService._();
   static final instance = DriverService._();
 
-  final supabase = Supabase.instance.client;
+  final SupabaseClient supabase = Supabase.instance.client;
 
-  Future<Map<String, dynamic>?> getDriverProfile(String userId) async {
-    final res = await supabase
-        .from('drivers')
-        .select()
-        .eq('user_id', userId)
-        .maybeSingle();
-    return res;
+  /// Fetch driver profile data
+  Future<Map<String, dynamic>> getDriverProfile(String userId) async {
+    try {
+      final response = await supabase
+          .from('drivers')
+          .select('*')
+          .eq('id', userId)
+          .single();
+
+      final data = Map<String, dynamic>.from(response);
+      data.putIfAbsent('is_online', () => false);
+      return data;
+    } on PostgrestException catch (e, st) {
+      log('❌ Supabase error in getDriverProfile', error: e.message, stackTrace: st);
+      throw Exception('Failed to fetch driver profile: ${e.message}');
+    } catch (e, st) {
+      log('❌ Unexpected error in getDriverProfile', error: e, stackTrace: st);
+      throw Exception('Unexpected error fetching driver profile.');
+    }
   }
 
-  Future<Map<String, dynamic>> getDriverEarnings(String userId) async {
-    final res = await supabase
-        .rpc('get_driver_earnings', params: {'driver_id': userId});
-    return (res as Map<String, dynamic>?) ?? {};
-  }
-
-  Future<Map<String, dynamic>?> getActiveRide(String userId) async {
-    final res = await supabase
-        .from('rides')
-        .select()
-        .eq('driver_id', userId)
-        .eq('status', 'active')
-        .maybeSingle();
-    return res;
-  }
-
-  Future<bool> updateRideStatus(int rideId, String newStatus) async {
-    final res = await supabase
-        .from('rides')
-        .update({'status': newStatus})
-        .eq('id', rideId);
-    return res.error == null;
-  }
-
-  Future<void> updateOnlineStatus(String userId, bool isOnline) async {
-    await supabase
-        .from('drivers')
-        .update({'is_online': isOnline})
-        .eq('user_id', userId);
+  /// Update driver online/offline status
+  Future<bool> updateOnlineStatus(String userId, bool isOnline) async {
+    try {
+      await supabase
+          .from('drivers')
+          .update({'is_online': isOnline})
+          .eq('id', userId);
+      return true;
+    } on PostgrestException catch (e, st) {
+      log('❌ Supabase error in updateOnlineStatus', error: e.message, stackTrace: st);
+      return false;
+    } catch (e, st) {
+      log('❌ Unexpected error in updateOnlineStatus', error: e, stackTrace: st);
+      return false;
+    }
   }
 }

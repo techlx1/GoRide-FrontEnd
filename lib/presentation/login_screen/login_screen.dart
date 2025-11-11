@@ -59,6 +59,11 @@ class _LoginScreenState extends State<LoginScreen> {
           'user_type',
           response['user']?['user_type'] ?? 'rider',
         );
+        // ✅ Save user_id for DriverDashboard
+        if (response['user']?['id'] != null) {
+          await prefs.setString('user_id', response['user']['id'].toString());
+        }
+
 
         // ✅ Navigate based on user type
         final userType =

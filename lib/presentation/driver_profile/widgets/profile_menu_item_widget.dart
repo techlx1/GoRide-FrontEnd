@@ -35,7 +35,7 @@ class ProfileMenuItemWidget extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.8.h),
         child: Row(
           children: [
-            // Icon container
+            // Icon
             Container(
               width: 10.w,
               height: 10.w,
@@ -43,15 +43,11 @@ class ProfileMenuItemWidget extends StatelessWidget {
                 color: (iconColor ?? theme.primary).withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(
-                icon,
-                size: 18.sp,
-                color: iconColor ?? theme.primary,
-              ),
+              child: Icon(icon, size: 18.sp, color: iconColor ?? theme.primary),
             ),
             SizedBox(width: 4.w),
 
-            // Title and subtitle
+            // Text
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -78,7 +74,6 @@ class ProfileMenuItemWidget extends StatelessWidget {
               ),
             ),
 
-            // Optional arrow
             if (showArrow)
               Icon(Icons.arrow_forward_ios, size: 14.sp, color: theme.outline),
           ],

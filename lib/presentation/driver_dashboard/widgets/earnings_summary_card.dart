@@ -12,9 +12,10 @@ class EarningsSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final total = earnings['total'] ?? 0;
-    final today = earnings['today'] ?? 0;
-    final trips = earnings['trips'] ?? 0;
+    final today = (earnings['today'] ?? 0).toDouble();
+    final week = (earnings['week'] ?? 0).toDouble();
+    final month = (earnings['month'] ?? 0).toDouble();
+    final total = (earnings['total'] ?? 0).toDouble();
 
     return Container(
       width: double.infinity,
@@ -25,9 +26,9 @@ class EarningsSummaryCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.lightTheme.colorScheme.shadow.withOpacity(0.1),
+            color: AppTheme.lightTheme.colorScheme.shadow.withOpacity(0.08),
             blurRadius: 8,
-            offset: const Offset(0, 2),
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -37,16 +38,18 @@ class EarningsSummaryCard extends StatelessWidget {
           Text(
             "Earnings Summary",
             style: AppTheme.lightTheme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
+              color: Colors.black87,
             ),
           ),
           SizedBox(height: 2.h),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildStat("Today", "\$${today.toStringAsFixed(2)}"),
-              _buildStat("Trips", trips.toString()),
-              _buildStat("Total", "\$${total.toStringAsFixed(2)}"),
+              _buildStat("Today", "G\$${today.toStringAsFixed(0)}"),
+              _buildStat("Week", "G\$${week.toStringAsFixed(0)}"),
+              _buildStat("Month", "G\$${month.toStringAsFixed(0)}"),
+              _buildStat("Total", "G\$${total.toStringAsFixed(0)}"),
             ],
           ),
         ],
@@ -61,12 +64,13 @@ class EarningsSummaryCard extends StatelessWidget {
           value,
           style: AppTheme.lightTheme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.bold,
+            color: Colors.black,
           ),
         ),
         Text(
           label,
           style: AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
-            color: AppTheme.lightTheme.colorScheme.onSurfaceVariant,
+            color: Colors.grey[600],
           ),
         ),
       ],

@@ -7,13 +7,12 @@ import '../presentation/rider_home_screen/rider_home_screen.dart';
 import '../presentation/ride_booking_confirmation/ride_booking_confirmation.dart';
 import '../presentation/active_ride_tracking/active_ride_tracking.dart';
 import '../presentation/ride_history/ride_history.dart';
-import '../presentation/user_profile/user_profile.dart';
+//import '../presentation/user_profile/user_profile.dart';
 
 // 🚗 Driver Screens
 import '../presentation/driver_dashboard/driver_dashboard.dart';
 import '../presentation/driver_wallet/driver_wallet_screen.dart';
-import '../presentation/driver_rides/driver_earnings.dart';
-import '../presentation/driver_rides/driver_profile.dart';
+import '../presentation/driver_profile/driver_profile.dart';
 import '../presentation/driver_rides/driver_ride_requests.dart';
 import '../presentation/driver_rides/driver_ongoing_ride.dart';
 
@@ -30,7 +29,6 @@ class AppRoutes {
 
   // 🚘 Driver Routes
   static const String driverDashboard = '/driver-dashboard';
-  static const String driverEarnings = '/driver-earnings';
   static const String driverWallet = '/driver-wallet';
   static const String driverProfile = '/driver-profile';
   static const String driverRideRequests = '/driver-ride-requests';
@@ -45,12 +43,11 @@ class AppRoutes {
     rideBookingConfirmation: (context) => const RideBookingConfirmation(),
     activeRideTracking: (context) => const ActiveRideTracking(),
     rideHistory: (context) => const RideHistory(),
-    userProfile: (context) => const UserProfile(),
+   // userProfile: (context) => const UserProfile(),
 
     // 🚘 Driver
     driverDashboard: (context) => const DriverDashboard(),
     driverWallet: (context) => const DriverWalletScreen(),
-    driverEarnings: (context) => const DriverEarningsScreen(),
     driverProfile: (context) => const DriverProfile(),
     driverRideRequests: (context) => const DriverRideRequests(),
     driverOngoingRide: (context) => const DriverOngoingRide(ride: {}),
