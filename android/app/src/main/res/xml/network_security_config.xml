@@ -1,16 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
-    <!-- ✅ Allow HTTPS & development HTTP requests -->
     <domain-config cleartextTrafficPermitted="true">
-        <!-- 🌍 Production Backend (Render) -->
-        <domain includeSubdomains="true">g-ride-backend.onrender.com</domain>
-
-        <!-- 💻 Localhost Testing (Android emulator) -->
-        <domain>10.0.2.2</domain>
-        <domain>127.0.0.1</domain>
-        <domain>localhost</domain>
+        <domain includeSubdomains="true">10.0.2.2</domain>
+        <domain includeSubdomains="true">127.0.0.1</domain>
+        <domain includeSubdomains="true">localhost</domain>
     </domain-config>
 
-    <!-- ✅ Catch-all fallback for non-specified domains -->
-    <base-config cleartextTrafficPermitted="true" />
+    <!-- Optional: allow your Render backend (HTTPS is allowed by default) -->
+    <!--
+    <domain-config>
+        <domain includeSubdomains="true">g-ride-backend.onrender.com</domain>
+    </domain-config>
+    -->
 </network-security-config>

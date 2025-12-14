@@ -1,40 +1,71 @@
 import 'package:dio/dio.dart';
-import 'api_service.dart';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import './api/api_client.dart';
 
+/// 💳 Handles driver wallet operations
+/// such as fetching balance, adding earnings, and withdrawals.
 class WalletService {
-  // 🧾 Fetch driver wallet
-  static Future<Map<String, dynamic>> getDriverWallet(int driverId) async {
+  static final Dio _dio = ApiClient.dio;
+
+  /// 🧾 Fetch driver wallet (requires token)
+  static Future<Map<String, dynamic>> getDriverWallet() async {
     try {
-      final response = await ApiService.dio.get('/driver/wallet/$driverId');
-      return response.data;
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+
+      final response = await _dio.get(
+        '/driver/wallet',
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+
+      return Map<String, dynamic>.from(response.data);
+    } on DioException catch (e) {
+      debugPrint('❌ Wallet fetch error: ${e.message}');
+      return ApiClient.handleError(e);
     } catch (e) {
       debugPrint('Wallet fetch error: $e');
       return {'success': false, 'balance': 0, 'transactions': []};
     }
   }
 
-  // 💸 Add earnings (after ride)
-  static Future<void> addEarning(int driverId, double amount) async {
+  /// 💸 Add earnings (after a completed ride)
+  static Future<void> addEarning(double amount) async {
     try {
-      await ApiService.dio.post('/driver/wallet/update', data: {
-        'driver_id': driverId,
-        'amount': amount,
-        'type': 'Ride Completed'
-      });
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+
+      await _dio.post(
+        '/driver/wallet/update',
+        data: {'amount': amount, 'type': 'Ride Completed'},
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+      debugPrint('✅ Added earning: $amount');
+    } on DioException catch (e) {
+      debugPrint('❌ Add earning failed: ${e.message}');
+      ApiClient.handleError(e);
     } catch (e) {
       debugPrint('Add earning failed: $e');
     }
   }
 
-  // 🏧 Withdraw request
-  static Future<Map<String, dynamic>> withdraw(int driverId, double amount) async {
+  /// 🏧 Withdraw funds
+  static Future<Map<String, dynamic>> withdraw(double amount) async {
     try {
-      final response = await ApiService.dio.post('/driver/wallet/withdraw', data: {
-        'driver_id': driverId,
-        'amount': amount,
-      });
-      return response.data;
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+
+      final response = await _dio.post(
+        '/driver/wallet/withdraw',
+        data: {'amount': amount},
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+
+      debugPrint('✅ Withdrawal response: ${response.data}');
+      return Map<String, dynamic>.from(response.data);
+    } on DioException catch (e) {
+      debugPrint('❌ Withdraw failed: ${e.message}');
+      return ApiClient.handleError(e);
     } catch (e) {
       debugPrint('Withdraw failed: $e');
       return {'success': false, 'message': 'Withdraw failed'};

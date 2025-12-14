@@ -196,21 +196,21 @@ class _OtpVerificationState extends State<OtpVerification> with CodeAutoFill {
           case 'registration':
             Navigator.pushNamedAndRemoveUntil(
               context,
-              '/rider-home-screen',
+              '/rider-home-screens',
               (route) => false,
             );
             break;
           case 'login':
             Navigator.pushNamedAndRemoveUntil(
               context,
-              '/rider-home-screen',
+              '/rider-home-screens',
               (route) => false,
             );
             break;
           case 'password_reset':
             Navigator.pushNamedAndRemoveUntil(
               context,
-              '/login-screen',
+              '/login-screens',
               (route) => false,
             );
             break;

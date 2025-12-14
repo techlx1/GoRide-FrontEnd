@@ -1,122 +1,148 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:sizer/sizer.dart';
 
-/// Displays the driver’s key document statuses:
-/// Fitness Certificate, Insurance, and Driver Licence.
 class DriverDocumentsWidget extends StatelessWidget {
-  final Map<String, dynamic>? documents;
+  final List<dynamic> documents;
 
-  const DriverDocumentsWidget({Key? key, this.documents}) : super(key: key);
+  const DriverDocumentsWidget({
+    Key? key,
+    required this.documents,
+  }) : super(key: key);
+
+  Color _statusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'approved':
+        return Colors.green;
+      case 'pending':
+        return Colors.orange;
+      case 'rejected':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  IconData _statusIcon(String status) {
+    switch (status.toLowerCase()) {
+      case 'approved':
+        return Icons.check_circle;
+      case 'pending':
+        return Icons.hourglass_top_rounded;
+      case 'rejected':
+        return Icons.cancel;
+      default:
+        return Icons.help_outline;
+    }
+  }
+
+  // Convert backend types → readable labels
+  String _formatType(String type) {
+    switch (type) {
+      case "license_front":
+        return "License (Front)";
+      case "license_back":
+        return "License (Back)";
+      case "vehicle_registration":
+        return "Vehicle Registration";
+      default:
+        return "Unknown";
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final docs = documents ?? {
-      'fitness': {'status': 'valid', 'expiry': '2026-01-12'},
-      'insurance': {'status': 'expiring', 'expiry': '2025-12-10'},
-      'licence': {'status': 'expired', 'expiry': '2025-10-30'},
-    };
+    if (documents.isEmpty) {
+      return _emptyBox();
+    }
 
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Uploaded Documents",
+          style: TextStyle(
+            fontSize: 14.sp,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        SizedBox(height: 1.5.h),
+
+        ...documents.map((doc) => _buildDocItem(doc)).toList(),
+      ],
+    );
+  }
+
+  Widget _emptyBox() {
     return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(4.w),
+      padding: EdgeInsets.all(3.w),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12.sp),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
+            color: Colors.black12,
+            blurRadius: 4,
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "Driver Document Status",
-            style: GoogleFonts.inter(
-              fontSize: 15.sp,
-              fontWeight: FontWeight.w600,
-              color: Colors.black87,
-            ),
-          ),
-          SizedBox(height: 1.5.h),
-
-          _buildDocStatusRow(
-            "Fitness Certificate",
-            docs['fitness']?['expiry'] ?? 'Unknown',
-            docs['fitness']?['status'] ?? 'pending',
-          ),
-          _buildDocStatusRow(
-            "Insurance",
-            docs['insurance']?['expiry'] ?? 'Unknown',
-            docs['insurance']?['status'] ?? 'pending',
-          ),
-          _buildDocStatusRow(
-            "Driver Licence",
-            docs['licence']?['expiry'] ?? 'Unknown',
-            docs['licence']?['status'] ?? 'pending',
-          ),
-        ],
+      child: Center(
+        child: Text(
+          "No documents uploaded",
+          style: TextStyle(fontSize: 12.sp, color: Colors.black54),
+        ),
       ),
     );
   }
 
-  /// Builds a color-coded row for each document
-  Widget _buildDocStatusRow(String title, String expiry, String status) {
-    IconData icon;
-    Color color;
-    String subtitle;
+  Widget _buildDocItem(dynamic doc) {
+    final status = doc['status'] ?? 'unknown';
+    final type = _formatType(doc['type'] ?? '');
+    final uploadedAt = doc['uploaded_at'];
 
-    switch (status.toLowerCase()) {
-      case 'valid':
-        icon = Icons.check_circle;
-        color = Colors.green;
-        subtitle = "Valid until $expiry";
-        break;
-      case 'expiring':
-        icon = Icons.warning_amber_rounded;
-        color = Colors.orange;
-        subtitle = "Expiring soon $expiry";
-        break;
-      case 'expired':
-        icon = Icons.cancel_rounded;
-        color = Colors.red;
-        subtitle = "Expired $expiry";
-        break;
-      default:
-        icon = Icons.help_outline;
-        color = Colors.grey;
-        subtitle = "Status unknown";
-    }
-
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 1.2.h),
+    return Container(
+      margin: EdgeInsets.only(bottom: 1.5.h),
+      padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12.sp),
+        boxShadow: [
+          BoxShadow(color: Colors.black12, blurRadius: 4),
+        ],
+      ),
       child: Row(
         children: [
-          Icon(icon, color: color, size: 20.sp),
-          SizedBox(width: 3.w),
+          Icon(
+            _statusIcon(status),
+            color: _statusColor(status),
+            size: 22.sp,
+          ),
+          SizedBox(width: 4.w),
+
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  title,
-                  style: GoogleFonts.inter(
-                    fontWeight: FontWeight.w600,
+                  type,
+                  style: TextStyle(
                     fontSize: 12.sp,
-                    color: Colors.black87,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
+                SizedBox(height: .5.h),
+
                 Text(
-                  subtitle,
-                  style: GoogleFonts.inter(
-                    fontSize: 11.sp,
-                    color: Colors.grey[700],
-                  ),
+                  "Status: ${status[0].toUpperCase()}${status.substring(1)}",
+                  style: TextStyle(fontSize: 10.sp, color: Colors.black54),
                 ),
+
+                if (uploadedAt != null) ...[
+                  SizedBox(height: .7.h),
+                  Text(
+                    "Uploaded: $uploadedAt",
+                    style: TextStyle(fontSize: 9.sp, color: Colors.black38),
+                  ),
+                ]
               ],
             ),
           ),

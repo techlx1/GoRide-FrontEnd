@@ -7,18 +7,19 @@ class EarningsApi {
   static final Dio _dio = ApiClient.dio;
 
   /// 📊 Fetch driver earnings summary
-  /// Endpoint: GET /api/driver/earnings/:driverId
+  /// Backend: GET /driver/earnings
+  /// Driver ID is extracted from JWT token on server
   static Future<Map<String, dynamic>> getEarnings({
-    required String driverId,
     required String token,
   }) async {
     try {
       final response = await _dio.get(
-        '/driver/earnings/$driverId',
+        '/driver/earnings',
         options: Options(headers: {
           'Authorization': 'Bearer $token',
         }),
       );
+
       return Map<String, dynamic>.from(response.data);
     } on DioException catch (e) {
       return ApiClient.handleError(e);
@@ -28,18 +29,18 @@ class EarningsApi {
   }
 
   /// 💼 Retrieve driver wallet balance
-  /// (Future endpoint: /api/driver/wallet/:driverId)
+  /// Backend: GET /driver/wallet
   static Future<Map<String, dynamic>> getWallet({
-    required String driverId,
     required String token,
   }) async {
     try {
       final response = await _dio.get(
-        '/driver/wallet/$driverId',
+        '/driver/wallet',
         options: Options(headers: {
           'Authorization': 'Bearer $token',
         }),
       );
+
       return Map<String, dynamic>.from(response.data);
     } on DioException catch (e) {
       return ApiClient.handleError(e);
@@ -48,21 +49,21 @@ class EarningsApi {
     }
   }
 
-  /// 💸 Request withdrawal from driver wallet
-  /// (Future endpoint: POST /api/driver/wallet/withdraw)
-  static Future<Map<String, dynamic>> withdraw({
-    required String driverId,
+  /// 💸 Request payout
+  /// Backend: POST /driver/wallet/payout
+  static Future<Map<String, dynamic>> requestPayout({
     required double amount,
     required String token,
   }) async {
     try {
       final response = await _dio.post(
-        '/driver/wallet/withdraw',
-        data: {'driverId': driverId, 'amount': amount},
+        '/driver/wallet/payout',
+        data: {'amount': amount},
         options: Options(headers: {
           'Authorization': 'Bearer $token',
         }),
       );
+
       return Map<String, dynamic>.from(response.data);
     } on DioException catch (e) {
       return ApiClient.handleError(e);

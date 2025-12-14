@@ -61,7 +61,7 @@ class EmptyRideHistoryWidget extends StatelessWidget {
                 onPressed: () {
                   Navigator.pushNamedAndRemoveUntil(
                     context,
-                    '/rider-home-screen',
+                    '/rider-home-screens',
                     (route) => false,
                   );
                 },

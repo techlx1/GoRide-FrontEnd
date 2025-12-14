@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
-import '../../../theme/app_theme.dart';
 
 class EarningsSummaryCard extends StatelessWidget {
   final Map<String, dynamic> earnings;
 
-  const EarningsSummaryCard({
-    Key? key,
-    required this.earnings,
-  }) : super(key: key);
+  const EarningsSummaryCard({Key? key, required this.earnings})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -19,14 +16,14 @@ class EarningsSummaryCard extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      margin: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.h),
+      margin: EdgeInsets.symmetric(vertical: 1.h),
       padding: EdgeInsets.all(4.w),
       decoration: BoxDecoration(
-        color: AppTheme.lightTheme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12.sp),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.lightTheme.colorScheme.shadow.withOpacity(0.08),
+            color: Colors.black12,
             blurRadius: 8,
             offset: const Offset(0, 3),
           ),
@@ -37,9 +34,9 @@ class EarningsSummaryCard extends StatelessWidget {
         children: [
           Text(
             "Earnings Summary",
-            style: AppTheme.lightTheme.textTheme.titleMedium?.copyWith(
+            style: TextStyle(
+              fontSize: 14.sp,
               fontWeight: FontWeight.w700,
-              color: Colors.black87,
             ),
           ),
           SizedBox(height: 2.h),
@@ -62,14 +59,15 @@ class EarningsSummaryCard extends StatelessWidget {
       children: [
         Text(
           value,
-          style: AppTheme.lightTheme.textTheme.titleMedium?.copyWith(
+          style: TextStyle(
+            fontSize: 13.sp,
             fontWeight: FontWeight.bold,
-            color: Colors.black,
           ),
         ),
         Text(
           label,
-          style: AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
+          style: TextStyle(
+            fontSize: 10.sp,
             color: Colors.grey[600],
           ),
         ),

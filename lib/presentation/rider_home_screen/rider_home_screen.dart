@@ -503,7 +503,7 @@ class _RiderHomeScreenState extends State<RiderHomeScreen>
       floatingActionButton: _activeRide == null
           ? FloatingActionButton.extended(
               onPressed: () {
-                // Navigate to ride booking screen
+                // Navigate to ride booking screens
                 Navigator.pushNamed(context, '/ride-booking-confirmation');
               },
               backgroundColor: Theme.of(context).primaryColor,

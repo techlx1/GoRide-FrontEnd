@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
+
 import '../../../core/app_export.dart';
 
 class OnlineStatusToggle extends StatelessWidget {
@@ -43,8 +44,9 @@ class OnlineStatusToggle extends StatelessWidget {
                   : AppTheme.lightTheme.colorScheme.onSurfaceVariant,
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              isOnline ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+            child: CustomIconWidget(
+              iconName:
+              isOnline ? 'radio_button_checked' : 'radio_button_unchecked',
               color: Colors.white,
               size: 24,
             ),

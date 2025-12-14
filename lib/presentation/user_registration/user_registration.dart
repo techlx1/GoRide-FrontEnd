@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 import '../../core/app_export.dart';
 import '../../theme/app_theme.dart';
-import '../../services/api_service.dart';
+import '../../services/api/auth_api.dart';
 import '../../utils/toast_helper.dart';
 import './widgets/progress_header_widget.dart';
 import './widgets/registration_form_widget.dart';
@@ -34,7 +34,7 @@ class _UserRegistrationState extends State<UserRegistration> {
 
   /// ✅ Handles registration via backend
   Future<void> _handleRegistration() async {
-    if (!_formData['isValid']) {
+    if (_formData['isValid'] != true) {
       ToastHelper.showError('Please fill in all required fields correctly');
       return;
     }
@@ -42,15 +42,18 @@ class _UserRegistrationState extends State<UserRegistration> {
     setState(() => _isLoading = true);
 
     try {
-      final normalizedUserType =
-      _formData['userType'].toString().toLowerCase();
+      final fullName = _formData['fullName']?.trim() ?? '';
+      final email = _formData['email']?.trim() ?? '';
+      final phone = _formData['phone']?.trim() ?? '';
+      final password = _formData['password']?.trim() ?? '';
+      final userType = _formData['userType']?.toString().toLowerCase() ?? 'rider';
 
-      final response = await ApiService.registerUser(
-        _formData['fullName'] ?? '',
-        _formData['email'] ?? '',
-        _formData['phone'] ?? '',
-        _formData['password'] ?? '',
-        normalizedUserType,
+      final response = await AuthApi.register(
+        fullName: fullName,
+        email: email,
+        phone: phone,
+        password: password,
+        userType: userType,
       );
 
       if (response['success'] == true) {
@@ -65,8 +68,8 @@ class _UserRegistrationState extends State<UserRegistration> {
             context,
             '/otp-verification',
             arguments: {
-              'email': _formData['email'],
-              'userType': normalizedUserType,
+              'email': email,
+              'userType': userType,
             },
           );
         }
@@ -81,7 +84,7 @@ class _UserRegistrationState extends State<UserRegistration> {
   }
 
   void _handleBackPressed() {
-    Navigator.pushReplacementNamed(context, '/login-screen');
+    Navigator.pushReplacementNamed(context, '/login-screens');
   }
 
   @override

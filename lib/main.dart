@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sizer/sizer.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -11,20 +12,29 @@ import '../widgets/custom_error_widget.dart';
 import '../theme/app_theme.dart';
 import 'firebase_options.dart';
 
+// Providers
+import '../providers/auth_providers.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   bool _hasShownError = false;
 
-  // ✅ Initialize Firebase
+  // ---------------------------------------------------------
+  // 🔥 Initialize Firebase
+  // ---------------------------------------------------------
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // ✅ Initialize Supabase
+  // ---------------------------------------------------------
+  // 🟢 Initialize Supabase
+  // ---------------------------------------------------------
   await Supabase.initialize(
-    url: 'https://YOUR-PROJECT-ID.supabase.co', // 🔗 Replace with your Supabase URL
-    anonKey: 'YOUR-ANON-KEY', // 🗝 Replace with your Supabase anon key
+    url: 'https://YOUR-PROJECT-ID.supabase.co',
+    anonKey: 'YOUR-ANON-KEY',
   );
 
-  // 🚨 Global error widget (to avoid red crash screens)
+  // ---------------------------------------------------------
+  // GLOBAL ERROR WIDGET
+  // ---------------------------------------------------------
   ErrorWidget.builder = (FlutterErrorDetails details) {
     if (!_hasShownError) {
       _hasShownError = true;
@@ -36,19 +46,52 @@ Future<void> main() async {
     return const SizedBox.shrink();
   };
 
-  // 🔒 Lock orientation
+  // ---------------------------------------------------------
+  // Force portrait mode
+  // ---------------------------------------------------------
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
   ]);
 
-  // 🧠 Clear any old session (forces login on first open)
+  // ---------------------------------------------------------
+  // LOAD SAVED USER SESSION BEFORE runApp
+  // ---------------------------------------------------------
   final prefs = await SharedPreferences.getInstance();
-  await prefs.clear(); // 💥 ensures app always opens at login
 
-  // 🚀 Always start from login
-  const String initialRoute = AppRoutes.login;
+  final savedToken = prefs.getString("auth_token");
+  final savedUserType = prefs.getString("user_type");
+  final savedUserId = prefs.getString("user_id");
 
-  runApp(MyApp(initialRoute: initialRoute));
+  String initialRoute;
+
+  // ---------------------------------------------------------
+  // Determine startup screens
+  // ---------------------------------------------------------
+  if (savedToken != null && savedUserType != null) {
+    if (savedUserType == "driver" && savedUserId != null) {
+      initialRoute = AppRoutes.driverDashboard;
+    } else {
+      initialRoute = AppRoutes.rideBookingConfirmation;
+    }
+  } else {
+    initialRoute = AppRoutes.login;
+  }
+
+  // ---------------------------------------------------------
+  // Start App with Providers Available
+  // ---------------------------------------------------------
+  runApp(
+    ProviderScope(
+      overrides: [
+        authTokenProvider.overrideWith((ref) => savedToken),
+        userTypeProvider.overrideWith((ref) => savedUserType),
+        driverIdProvider.overrideWith(
+              (ref) => savedUserType == "driver" ? savedUserId : null,
+        ),
+      ],
+      child: MyApp(initialRoute: initialRoute),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -61,9 +104,11 @@ class MyApp extends StatelessWidget {
       builder: (context, orientation, screenType) {
         return MaterialApp(
           title: 'RideGuyana',
+
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: ThemeMode.light,
+
           debugShowCheckedModeBanner: false,
 
           builder: (context, child) {
@@ -75,7 +120,11 @@ class MyApp extends StatelessWidget {
             );
           },
 
+          // ---------------------------------------------------------
+          // All Screens Registered Here
+          // ---------------------------------------------------------
           routes: AppRoutes.routes,
+
           initialRoute: initialRoute,
         );
       },

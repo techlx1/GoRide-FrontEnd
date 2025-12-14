@@ -404,7 +404,7 @@ class AppDrawerWidget extends StatelessWidget {
                 Navigator.pop(context); // Close dialog
                 Navigator.pushNamedAndRemoveUntil(
                   context,
-                  '/login-screen',
+                  '/login-screens',
                   (route) => false,
                 );
               } catch (error) {

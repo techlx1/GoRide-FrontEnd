@@ -1,26 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sizer/sizer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../routes/app_routes.dart';
 import '../../core/app_export.dart';
 import '../../theme/app_theme.dart';
-import '../../services/api_service.dart';
+import '../../services/api/auth_api.dart';
 import '../../utils/toast_helper.dart';
+
+// Widgets
 import './widgets/app_logo_widget.dart';
 import './widgets/biometric_login_widget.dart';
 import './widgets/login_form_widget.dart';
-import './widgets/social_login_widget.dart';
+import '../../providers/auth_providers.dart';   // ⭐ NEW: Riverpod driverId provider
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _isLoading = false;
   bool _isBiometricAvailable = true;
   bool _rememberMe = false;
@@ -38,39 +41,49 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  /// ✅ Handles backend login for email OR phone
+  /// 🔥 UPDATED LOGIN HANDLER (REMOVED FACEBOOK)
   Future<void> _handleLogin(String emailOrPhone, String password) async {
     setState(() => _isLoading = true);
 
     try {
-      final response = await ApiService.loginUser(emailOrPhone, password);
-      print('🟢 Login API Response: $response');
+      final response = await AuthApi.login(emailOrPhone, password);
+      print("🟢 Login API Response: $response");
 
       if (response['success'] == true) {
         HapticFeedback.lightImpact();
-        ToastHelper.showSuccess(response['message'] ?? 'Login successful!');
+        ToastHelper.showSuccess(response['message'] ?? "Login successful!");
 
-        // ✅ Save token and user type (optional for now)
         final prefs = await SharedPreferences.getInstance();
-        if (response['token'] != null) {
-          await prefs.setString('auth_token', response['token']);
+
+        /// 🔐 SAVE TOKEN
+        final token = response['token'];
+        if (token != null && token.toString().isNotEmpty) {
+          await prefs.setString('auth_token', token.toString());
+        } else {
+          ToastHelper.showError("No token returned from server.");
+          setState(() => _isLoading = false);
+          return;
         }
-        await prefs.setString(
-          'user_type',
-          response['user']?['user_type'] ?? 'rider',
-        );
-        // ✅ Save user_id for DriverDashboard
+
+        /// 👤 Save user_type
+        final userType = (response['user']?['user_type'] ?? 'rider')
+            .toString()
+            .toLowerCase();
+        await prefs.setString('user_type', userType);
+
+        /// 🆔 Save user ID (driver or rider)
         if (response['user']?['id'] != null) {
-          await prefs.setString('user_id', response['user']['id'].toString());
+          final userId = response['user']['id'].toString();
+          await prefs.setString('user_id', userId);
+
+          // ⭐ NEW: Update driverIdProvider if DRIVER
+          if (userType == "driver") {
+            ref.read(driverIdProvider.notifier).state = userId;
+          }
         }
 
-
-        // ✅ Navigate based on user type
-        final userType =
-        (response['user']?['user_type'] ?? 'rider').toString().toLowerCase();
-        print('✅ Logged in as user type: $userType');
-
-        if (userType == 'driver') {
+        /// 🚀 NAVIGATION
+        if (userType == "driver") {
           Navigator.pushReplacementNamed(context, AppRoutes.driverDashboard);
         } else {
           Navigator.pushReplacementNamed(
@@ -78,23 +91,18 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       } else {
         HapticFeedback.heavyImpact();
-        ToastHelper.showError(response['message'] ?? 'Invalid credentials.');
+        ToastHelper.showError(response['message'] ?? "Invalid credentials.");
       }
     } catch (e) {
-      ToastHelper.showError('Login failed: $e');
+      ToastHelper.showError("Login failed: $e");
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  /// 🔹 Social login placeholder
-  Future<void> _handleSocialLogin(String provider) async {
-    ToastHelper.showInfo('$provider login coming soon');
-  }
-
   /// 🔹 Biometric login placeholder
   Future<void> _handleBiometricLogin() async {
-    ToastHelper.showInfo('Biometric login coming soon');
+    ToastHelper.showInfo("Biometric login coming soon");
   }
 
   @override
@@ -113,7 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const AppLogoWidget(),
                 SizedBox(height: 6.h),
 
-                // Title
+                /// Welcome Text
                 Text(
                   'Welcome!',
                   style: AppTheme.lightTheme.textTheme.headlineSmall?.copyWith(
@@ -124,6 +132,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   textAlign: TextAlign.center,
                 ),
                 SizedBox(height: 1.h),
+
                 Text(
                   'Sign in to continue your journey',
                   style: AppTheme.lightTheme.textTheme.bodyMedium?.copyWith(
@@ -134,27 +143,25 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 SizedBox(height: 4.h),
 
-                // Login Form
+                /// Login Form
                 LoginFormWidget(
                   onLogin: _handleLogin,
                   isLoading: _isLoading,
                 ),
 
-                // Remember Me
+                /// Remember Me
                 Row(
                   children: [
                     Checkbox(
                       value: _rememberMe,
                       onChanged: _isLoading
                           ? null
-                          : (value) =>
-                          setState(() => _rememberMe = value ?? false),
+                          : (value) => setState(() => _rememberMe = value ?? false),
                     ),
                     Expanded(
                       child: Text(
                         'Remember me on this device',
-                        style:
-                        AppTheme.lightTheme.textTheme.bodyMedium?.copyWith(
+                        style: AppTheme.lightTheme.textTheme.bodyMedium?.copyWith(
                           color: AppTheme.lightTheme.colorScheme.onSurfaceVariant,
                           fontSize: 13.sp,
                         ),
@@ -164,13 +171,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 SizedBox(height: 3.h),
 
-                // Social Login
-                SocialLoginWidget(
-                  isLoading: _isLoading,
-                  onSocialLogin: _handleSocialLogin,
-                ),
+                /// 🔥 FACEBOOK REMOVED
+                /// (Google & Apple login still available if needed later)
 
-                // Biometric Login
+                /// Biometric Login
                 BiometricLoginWidget(
                   onBiometricLogin: _handleBiometricLogin,
                   isAvailable: _isBiometricAvailable,
@@ -178,7 +182,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 SizedBox(height: 4.h),
 
-                // Sign Up
+                /// Register Navigation
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

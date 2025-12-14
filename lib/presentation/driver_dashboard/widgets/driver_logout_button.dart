@@ -3,11 +3,15 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sizer/sizer.dart';
 
-/// Logout button with confirmation dialog.
-/// Clears stored session data and redirects to login screen.
 class DriverLogoutButton extends StatelessWidget {
   const DriverLogoutButton({Key? key}) : super(key: key);
 
+  /// 🔓 PUBLIC method so Dashboard can trigger logout
+  void triggerLogout(BuildContext context) {
+    _handleLogout(context);
+  }
+
+  /// 🔒 PRIVATE method (remains private)
   Future<void> _handleLogout(BuildContext context) async {
     final confirm = await showDialog<bool>(
       context: context,
@@ -41,7 +45,7 @@ class DriverLogoutButton extends StatelessWidget {
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.redAccent,
+              backgroundColor: Colors.blueAccent,
               padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 1.h),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -60,7 +64,6 @@ class DriverLogoutButton extends StatelessWidget {
       ),
     );
 
-    // If confirmed
     if (confirm == true) {
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
@@ -89,7 +92,7 @@ class DriverLogoutButton extends StatelessWidget {
       padding: EdgeInsets.only(top: 3.h, bottom: 1.h),
       child: Center(
         child: ElevatedButton.icon(
-          onPressed: () => _handleLogout(context),
+          onPressed: () => triggerLogout(context),
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.redAccent,
             padding: EdgeInsets.symmetric(vertical: 1.5.h, horizontal: 10.w),

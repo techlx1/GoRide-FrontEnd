@@ -4,7 +4,7 @@ import '../routes/app_routes.dart';
 import 'toast_helper.dart';
 
 class SessionHelper {
-  /// Clears all session data and redirects user to login screen
+  /// Clears all session data and redirects user to login screens
   static Future<void> logout(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
